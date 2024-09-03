@@ -1,7 +1,8 @@
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Ellipsis } from "lucide-react";
+
 import Link from "next/link";
-import { CalendarIcon } from "@/components/ui/calendar";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -36,8 +37,43 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import CreateAccount from "./createAccount";
+import { Toaster } from "../ui/toaster";
 
-export function Dashboard() {
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  phone: string;
+  address: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+async function getUsers() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
+  }
+  return res.json();
+}
+export async function Dashboard() {
+  // Get users from backend
+  let users = await getUsers();
+  console.log("users---", users);
+  const userWithoutPassword = users.map((user: User) => ({
+    ...user,
+    password: null,
+  }));
+  users.password = null;
+  console.log("userWithoutPassword---", userWithoutPassword);
+  let showUsers = userWithoutPassword.filter(
+    (user: User) => user.role !== "admin"
+  );
+  console.log("showUsers---", showUsers);
+
   return (
     <div className='flex min-h-screen w-full flex-col bg-muted/40'>
       <header className='sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6'>
@@ -266,7 +302,10 @@ export function Dashboard() {
           </Card>
           <Card x-chunk='dashboard-01-chunk-1'>
             <CardHeader className='px-7'>
-              <CardTitle>User Management</CardTitle>
+              <div className='flex justify-between'>
+                <CardTitle>User Management</CardTitle>
+                <CreateAccount />
+              </div>
               <CardDescription>
                 Manage your restaurants staff and customers.
               </CardDescription>
@@ -281,162 +320,54 @@ export function Dashboard() {
                       Status
                     </TableHead>
                     <TableHead className='hidden md:table-cell'>
-                      Last Login
+                      Address
                     </TableHead>
                     <TableHead className='text-right'>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow className='bg-accent'>
-                    <TableCell>
-                      <div className='font-medium'>John Doe</div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        john@restaurant.com
-                      </div>
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      Manager
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      <Badge className='text-xs' variant='secondary'>
-                        Active
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='hidden md:table-cell'>
-                      2023-06-23
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup='true'
-                            size='icon'
-                            variant='ghost'
-                          >
-                            <div className='h-4 w-4' />
-                            <span className='sr-only'>Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Deactivate</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <div className='font-medium'>Jane Smith</div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        jane@restaurant.com
-                      </div>
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      Server
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      <Badge className='text-xs' variant='outline'>
-                        Inactive
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='hidden md:table-cell'>
-                      2023-06-24
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup='true'
-                            size='icon'
-                            variant='ghost'
-                          >
-                            <div className='h-4 w-4' />
-                            <span className='sr-only'>Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Activate</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <div className='font-medium'>Michael Johnson</div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        michael@restaurant.com
-                      </div>
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>Host</TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      <Badge className='text-xs' variant='secondary'>
-                        Active
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='hidden md:table-cell'>
-                      2023-06-25
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup='true'
-                            size='icon'
-                            variant='ghost'
-                          >
-                            <div className='h-4 w-4' />
-                            <span className='sr-only'>Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Deactivate</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <div className='font-medium'>Emily Davis</div>
-                      <div className='hidden text-sm text-muted-foreground md:inline'>
-                        emily@restaurant.com
-                      </div>
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      Server
-                    </TableCell>
-                    <TableCell className='hidden sm:table-cell'>
-                      <Badge className='text-xs' variant='secondary'>
-                        Active
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='hidden md:table-cell'>
-                      2023-06-26
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup='true'
-                            size='icon'
-                            variant='ghost'
-                          >
-                            <div className='h-4 w-4' />
-                            <span className='sr-only'>Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Deactivate</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                  {showUsers.map((user: User) => (
+                    <TableRow key={user._id} className='bg-accent'>
+                      <TableCell>
+                        <div className='font-medium'>{user.name}</div>
+                        <div className='hidden text-sm text-muted-foreground md:inline'>
+                          {user.email}
+                        </div>
+                      </TableCell>
+                      <TableCell className='hidden sm:table-cell'>
+                        {user.role}
+                      </TableCell>
+                      <TableCell className='hidden sm:table-cell'>
+                        <Badge className='text-xs' variant='secondary'>
+                          Active
+                        </Badge>
+                      </TableCell>
+                      <TableCell className='hidden md:table-cell'>
+                        {user.address}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup='true'
+                              size='icon'
+                              variant='outline'
+                            >
+                              <div>
+                                <Ellipsis />
+                              </div>
+                              <span className='sr-only'>Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align='end'>
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem>Deactivate</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -456,6 +387,7 @@ export function Dashboard() {
           </Card>
         </div>
       </main>
+      <Toaster />
     </div>
   );
 }
