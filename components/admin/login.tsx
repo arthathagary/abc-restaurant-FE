@@ -47,9 +47,9 @@ export function Login() {
         localStorage.setItem("token", response.data.token);
         // onLogin(); // Update the isLogin state in the Admin component
 
-        const role = response.data.role;
+        const role = response.data.user.role;
         if (role === "admin") {
-          router.push("/admin");
+          router.push("/admin/dashboard");
         } else if (role === "staff") {
           router.push("/staff");
         } else {
