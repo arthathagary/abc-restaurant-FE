@@ -51,33 +51,33 @@ export function Dashboard() {
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/menu`
         );
-        const itemsWithImages = await Promise.all(
-          response.data.map(async (item: MenuItem) => {
-            const imageSrc = await fetchImage(item.imageUrl);
-            return { ...item, imageSrc };
-          })
-        );
-        setMenuItems(itemsWithImages);
+        // const itemsWithImages = await Promise.all(
+        //   response.data.map(async (item: MenuItem) => {
+        //     // const imageSrc = await fetchImage(item.imageUrl);
+        //     return { ...item };
+        //   })
+        // );
+        setMenuItems(response.data);
       } catch (error) {
         console.error("Error fetching menu items:", error);
       }
     };
 
-    const fetchImage = async (imageName: string) => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload/${imageName}`,
-          { responseType: "arraybuffer" }
-        );
-        const base64Image = Buffer.from(response.data, "binary").toString(
-          "base64"
-        );
-        return `data:image/png;base64,${base64Image}`;
-      } catch (error) {
-        console.error("Error fetching image:", error);
-        return null;
-      }
-    };
+    // const fetchImage = async (imageName: string) => {
+    //   try {
+    //     const response = await axios.get(
+    //       `${process.env.NEXT_PUBLIC_API_URL}/upload/${imageName}`,
+    //       { responseType: "arraybuffer" }
+    //     );
+    //     const base64Image = Buffer.from(response.data, "binary").toString(
+    //       "base64"
+    //     );
+    //     return `data:image/png;base64,${base64Image}`;
+    //   } catch (error) {
+    //     console.error("Error fetching image:", error);
+    //     return null;
+    //   }
+    // };
 
     fetchMenuItems();
   }, []);
@@ -113,34 +113,34 @@ export function Dashboard() {
     );
   };
 
+  const total = cart.reduce(
+    (total, item) => total + item.price * item.quantity!,
+    0
+  );
+
+  const handleOrder = async ()=>{
+    console.log("Ordering..."); 
+    console.log("cart", cart);
+    console.log(total)
+    const userString = localStorage.getItem("user");
+  if (userString) {
+    const user = JSON.parse(userString);
+    console.log("user", user);
+    console.log("user._id", user._id);
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+      userId: user._id,
+      items: cart,
+      totalAmount: total
+    })
+    console.log("res", res);
+  } else {
+    console.log("No user found in localStorage");
+  }
+  }
+
   return (
     <div className='flex flex-col min-h-screen'>
-      <header className='bg-primary text-primary-foreground py-4 px-6'>
-        <div className='container mx-auto flex justify-between items-center'>
-          <Link href='#' className='text-2xl font-bold' prefetch={false}>
-            ABC Restaurant
-          </Link>
-          <nav>
-            <ul className='flex space-x-4'>
-              <li>
-                <Link href='#' prefetch={false}>
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href='#' prefetch={false}>
-                  Menu
-                </Link>
-              </li>
-              <li>
-                <Link href='#' prefetch={false}>
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      
       <main className='flex-1 py-8 px-6'>
         <div className='container mx-auto'>
           <div className='mb-6 flex justify-between items-center'>
@@ -164,9 +164,9 @@ export function Dashboard() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onSelect={() => setSelectedCategory("Appetizers")}
+                      onSelect={() => setSelectedCategory("Appetizer")}
                     >
-                      Appetizers
+                      Appetizer
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={() => setSelectedCategory("Main Course")}
@@ -178,6 +178,11 @@ export function Dashboard() {
                     >
                       Desserts
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => setSelectedCategory("Beverage")}
+                    >
+                      Beverage
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <div className='relative flex-1'>
@@ -188,7 +193,7 @@ export function Dashboard() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className='pr-8'
                   />
-                  <SearchIcon className='absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+                  <SearchIcon className='absolute right-2 top-1/2 -translate-y-1/2  text-muted-foreground' />
                 </div>
               </div>
             </div>
@@ -203,7 +208,7 @@ export function Dashboard() {
               <Card key={item._id}>
                 <div className='relative'>
                   <Image
-                    src={item.imageSrc || "/placeholder.svg"}
+                    src={process.env.NEXT_PUBLIC_API_URL + "/"+item.imageUrl || "/placeholder.svg"}
                     alt={item.description}
                     width={400}
                     height={300}
@@ -253,7 +258,7 @@ export function Dashboard() {
                   >
                     <div className='flex items-center space-x-4'>
                       <Image
-                        src={item.imageSrc || "/placeholder.svg"}
+                        src={process.env.NEXT_PUBLIC_API_URL + "/"+item.imageUrl || "/placeholder.svg"}
                         alt={item.name}
                         width={64}
                         height={64}
@@ -275,7 +280,7 @@ export function Dashboard() {
                           handleUpdateCartQuantity(item, item.quantity! - 1)
                         }
                       >
-                        <MinusIcon className='h-4 w-4' />
+                        <MinusIcon />
                         <span className='sr-only'>Decrease quantity</span>
                       </Button>
                       <Button
@@ -285,7 +290,7 @@ export function Dashboard() {
                           handleUpdateCartQuantity(item, item.quantity! + 1)
                         }
                       >
-                        <PlusIcon className='h-4 w-4' />
+                        <PlusIcon c/>
                         <span className='sr-only'>Increase quantity</span>
                       </Button>
                       <Button
@@ -293,7 +298,7 @@ export function Dashboard() {
                         variant='ghost'
                         onClick={() => handleRemoveFromCart(item)}
                       >
-                        <Trash2Icon className='h-4 w-4' />
+                        <Trash2Icon />
                         <span className='sr-only'>Remove from cart</span>
                       </Button>
                     </div>
@@ -314,8 +319,8 @@ export function Dashboard() {
               </div>
               <br />
               <SheetClose asChild className=''>
-                <Button type='submit' className=' w-full flex justify-center '>
-                  Save changes
+                <Button onClick={handleOrder} type='submit' className=' w-full flex justify-center '>
+                  Order
                 </Button>
               </SheetClose>
             </SheetFooter>

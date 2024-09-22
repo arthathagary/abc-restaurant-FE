@@ -32,7 +32,49 @@ import {
 } from "@/components/ui/card";
 import Image from "next/image";
 import ReusableCard from "../ReusableCard";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import axios from "axios";
 export function Dashboard() {
+  const router = useRouter();
+
+  const [counts, setCounts] = useState({
+    menus: 0,
+    reservations: 0,
+    queries: 0,
+    orders: 0,
+    galleries : 0
+    // payments: 0,
+  });
+  
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        const [menusRes, reservationsRes, queriesRes, ordersRes,galleriesRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/menu`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reservations`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/queries`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/gallery`),
+          // axios.get("${process.env.NEXT_PUBLIC_API_URL}/payments"),
+        ]);
+  
+        setCounts({
+          menus: menusRes.data.length,
+          reservations: reservationsRes.data.length,
+          queries: queriesRes.data.length,
+          orders: ordersRes.data.length,
+          galleries: galleriesRes.data.length
+          // payments: paymentsRes.data.length,
+        });
+        console.log("Fetched counts", menusRes.data.length);
+      } catch (error) {
+        console.error("Failed to fetch counts", error);
+      }
+    }
+  
+    fetchCounts();
+  }, []);
   return (
     <div className='flex min-h-screen w-full flex-col bg-muted/40'>
       <div className='flex flex-col sm:gap-4 sm:py-4 sm:pl-14'>
@@ -132,14 +174,15 @@ export function Dashboard() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <div className='relative ml-auto flex-1 md:grow-0'>
+          {/* <div className='relative ml-auto flex-1 md:grow-0'>
             <SearchIcon className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
             <Input
               type='search'
               placeholder='Search...'
               className='w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]'
             />
-          </div>
+          </div> */}
+          <div className="flex justify-end w-full">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -164,43 +207,47 @@ export function Dashboard() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={()=>{
+                localStorage.clear();
+                router.replace('/')
+              }}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </header>
         <main className='grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8'>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
             <ReusableCard
               title='Menus'
-              count={24}
+              count={counts.menus}
               btnText='View Menus'
               description='Available menus'
             />
             <ReusableCard
               title='Reservations'
-              count={24}
+              count={counts.reservations}
               btnText='View Reservations'
               description='Upcoming reservations'
             />
             <ReusableCard
               title='Queries'
-              count={24}
+              count={counts.queries}
               btnText='View Queries'
               description='Unresolved customer queries'
             />
 
             <ReusableCard
               title='Orders'
-              count={42}
+              count={counts.orders}
               btnText='View Orders'
               description='Pending and in-progress orders'
             />
 
             <ReusableCard
-              title='Payments'
-              count={42}
-              btnText='View Payments'
-              description='Upcoming payments'
+              title='Galleries'
+              count={counts.galleries}
+              btnText='View Galleries'
+              description='Upcoming Galleries'
             />
           </div>
         </main>

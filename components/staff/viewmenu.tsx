@@ -40,33 +40,35 @@ export function ViewMenu() {
         const response = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/menu`
         );
-        const itemsWithImages = await Promise.all(
-          response.data.map(async (item: MenuItem) => {
-            const imageSrc = await fetchImage(item.imageUrl);
-            return { ...item, imageUrl: imageSrc };
-          })
-        );
-        setMenuItems(itemsWithImages);
+        // const itemsWithImages = await Promise.all(
+        //   response.data.map(async (item: MenuItem) => {
+        //     // const imageSrc = await fetchImage(item.imageUrl);
+        //     return { ...item };
+        //   })
+        // );
+        setMenuItems(response.data);
+
+        return response.data;
       } catch (error) {
         console.error("Error fetching menu items:", error);
       }
     };
 
-    const fetchImage = async (imageName: string) => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload/${imageName}`,
-          { responseType: "arraybuffer" }
-        );
-        const base64Image = Buffer.from(response.data, "binary").toString(
-          "base64"
-        );
-        return `data:image/png;base64,${base64Image}`;
-      } catch (error) {
-        console.error("Error fetching image:", error);
-        return null;
-      }
-    };
+    // const fetchImage = async (imageName: string) => {
+    //   try {
+    //     const response = await axios.get(
+    //       `${process.env.NEXT_PUBLIC_API_URL}/upload/${imageName}`,
+    //       { responseType: "arraybuffer" }
+    //     );
+    //     const base64Image = Buffer.from(response.data, "binary").toString(
+    //       "base64"
+    //     );
+    //     return `data:image/png;base64,${base64Image}`;
+    //   } catch (error) {
+    //     console.error("Error fetching image:", error);
+    //     return null;
+    //   }
+    // };
 
     fetchMenuItems();
   }, []);
@@ -74,6 +76,7 @@ export function ViewMenu() {
   const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const[isFileBtnClicked, setIsFileBtnClicked] = useState(false);
   const [formData, setFormData] = useState<MenuItem>({
     _id: "",
     name: "",
@@ -95,6 +98,7 @@ export function ViewMenu() {
       setMenuItems(menuItems.filter((item) => item._id !== itemToDelete._id));
     }
     try {
+      console.log(itemToDelete, "itemToDelete");
       const response = await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/menu/${itemToDelete?._id}`
       );
@@ -154,7 +158,7 @@ export function ViewMenu() {
 
       if (formData._id === "") {
         const { _id, ...newMenuItem } = formData;
-        newMenuItem.image = imgRes.data.filePath;
+        newMenuItem.imageUrl = imgRes.data.file;
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/menu`,
           newMenuItem
@@ -182,6 +186,8 @@ export function ViewMenu() {
         available: true,
         imageUrl: "",
       });
+      setIsFileBtnClicked(false);
+
       // setNotification({
       //   type: "success",
       //   message:
@@ -285,7 +291,7 @@ export function ViewMenu() {
                   <tr key={item._id} className='border-b'>
                     <td className='px-4 py-2'>
                       <Image
-                        src={item.imageUrl || "/placeholder.svg"}
+                        src={process.env.NEXT_PUBLIC_API_URL + "/"+item.imageUrl}
                         alt={item.name}
                         width={80}
                         height={80}
@@ -386,8 +392,10 @@ export function ViewMenu() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='Appetizer'>Appetizer</SelectItem>
-                    <SelectItem value='Appetizer1'>Appetizer1</SelectItem>
-                    <SelectItem value='Appetizer2'>Appetizer2</SelectItem>
+                    <SelectItem value='Main Course'>Main Course</SelectItem>
+                    <SelectItem value='Dessert'>Dessert</SelectItem>
+                    <SelectItem value='Beverage'>Beverage</SelectItem>
+
                   </SelectContent>
                 </Select>
 
@@ -408,11 +416,13 @@ export function ViewMenu() {
               </div>
               <div className='mb-4 flex items-center gap-2'>
                 <Label htmlFor='available'>Available</Label>
-                <Switch
+                {/* <Switch
                   id='available'
                   // checked={formData.available}
                   // value={formData.available}
                   // checked={formData.available}
+                  checked={formData.available}
+                  // value={formData.available}
                   onChange={(e) => {
                     setFormData((prevFormData) => {
                       const updatedFormData = {
@@ -423,16 +433,28 @@ export function ViewMenu() {
                       return updatedFormData;
                     });
                   }}
-                />
+                /> */}
+
+<Switch
+  id='available'
+  checked={formData.available}
+  onClick={() => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      available: !prevFormData.available,
+    }));
+  }}
+/>
               </div>
               <div className='mb-4'>
                 <Label htmlFor='image'>Image</Label>
                 <Input
                   id='image'
                   type='file'
-                  onChange={(e) =>
-                    setFormData({ ...formData, image: e.target.files[0] })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, image: e.target.files[0] })  
+                    setIsFileBtnClicked(true);               
+                   }}
                 />
               </div>
               <div className='flex justify-end space-x-2'>

@@ -1,3 +1,6 @@
+"use client"; 
+import React, { useState } from 'react';
+import axios from 'axios';
 import {
   Card,
   CardHeader,
@@ -19,6 +22,29 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 export function Query() {
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      const userString = localStorage.getItem('user');
+        if (userString) {
+          const user = JSON.parse(userString);
+          const userId = user._id;
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/queries`, { userId,subject, message });
+          console.log(response.data)
+        } else {
+          console.error('No user found in localStorage');
+        }
+      
+      // Handle success (e.g., show a success message)
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error (e.g., show an error message)
+    }
+  };
+
   return (
     <Card className='w-full max-w-2xl mx-auto'>
       <CardHeader>
@@ -29,10 +55,10 @@ export function Query() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className='grid gap-4'>
+        <form className='grid gap-4' onSubmit={handleSubmit}>
           <div className='grid gap-2'>
             <Label htmlFor='subject'>Subject</Label>
-            <Select id='subject'>
+            <Select id='subject' onValueChange={setSubject}>
               <SelectTrigger>
                 <SelectValue placeholder='Select subject' />
               </SelectTrigger>
@@ -50,6 +76,8 @@ export function Query() {
               id='message'
               placeholder='Enter your message'
               className='min-h-[150px]'
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
             />
           </div>
           <Button type='submit' className='w-full'>
@@ -57,7 +85,7 @@ export function Query() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter>
+      {/* <CardFooter>
         <div className='space-y-4'>
           <Separator />
           <div className='space-y-2'>
@@ -72,7 +100,7 @@ export function Query() {
             </div>
           </div>
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

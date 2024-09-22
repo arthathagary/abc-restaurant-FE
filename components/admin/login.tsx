@@ -8,9 +8,15 @@ import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import reataurantImg from "@/public/restraurant.jpg";
+
 import axios from "axios";
 
-export function Login() {
+interface LoginProps{
+  isUser? : boolean;
+}
+
+export function Login({isUser}: LoginProps) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -45,15 +51,17 @@ export function Login() {
 
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         // onLogin(); // Update the isLogin state in the Admin component
 
-        const role = response.data.role;
+        const role = response.data.user.role;
+        console.log("role", role);
         if (role === "admin") {
-          router.push("/admin");
+          router.replace("/admin/dashboard");
         } else if (role === "staff") {
-          router.push("/staff");
+          router.replace("/staff");
         } else {
-          router.push("/");
+          router.replace("/user");
         }
       } else {
         localStorage.removeItem("token");
@@ -107,12 +115,12 @@ export function Login() {
             <div className='grid gap-2'>
               <div className='flex items-center'>
                 <Label htmlFor='password'>Password</Label>
-                <Link
+                {/* <Link
                   href='/forgot-password'
                   className='ml-auto inline-block text-sm underline'
                 >
                   Forgot your password?
-                </Link>
+                </Link> */}
               </div>
               <Input
                 id='password'
@@ -143,17 +151,18 @@ export function Login() {
               Login
             </Button>
           </div>
+          {isUser && (
           <div className='mt-4 text-center text-sm'>
             Don&apos;t have an account?{" "}
-            <Link href='#' className='underline'>
+            <Link href='/register' className='underline'>
               Sign up
             </Link>
-          </div>
+          </div>)}
         </div>
       </div>
       <div className='hidden bg-muted lg:block'>
         <Image
-          src='/placeholder.svg'
+          src={reataurantImg}
           alt='Image'
           width='1920'
           height='1080'

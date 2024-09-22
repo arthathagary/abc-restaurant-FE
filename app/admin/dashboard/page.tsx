@@ -1,8 +1,20 @@
+"use client"
 import { Dashboard } from "@/components/admin/dashboard";
-import React from "react";
+import withAuth from "@/hooks/withAuth";
+import React, { useEffect, useState } from "react";
 
 const AdminDashboardPage = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null; // or a loading spinner, or some placeholder
+  }
+
   return <Dashboard />;
 };
 
-export default AdminDashboardPage;
+export default withAuth(AdminDashboardPage) ;
